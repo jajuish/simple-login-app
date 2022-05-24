@@ -7,7 +7,7 @@ const port = 3000;
 
 connectToDatabase()
     .then(() => {
-        app.use("/", userRouter);
+        app.use("/user", userRouter);
 
         app.listen(port, () => {
             console.log(`Server started at http://localhost:${port}`);

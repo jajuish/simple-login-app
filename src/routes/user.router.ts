@@ -5,16 +5,14 @@ import User from "../models/user";
 
 // Global Config
 export const userRouter = express.Router();
-
-// userRouter.use(express.json());
+userRouter.use(express.json());
 
 // GET
 userRouter.get("/", async (_req: Request, res: Response) => {
 	console.log(`Getting /`)
 	try {
-		// const user = (await collections.user.find({}).toArray()) as User[];
+		// TODO: const user = (await collections.user.find({}).toArray()) as User[];
 		const user = (await collections.user.find({}).toArray());
-		console.log(user)
 
 		res.status(200).send(user);
 	} catch (error) {
@@ -24,11 +22,12 @@ userRouter.get("/", async (_req: Request, res: Response) => {
 
 userRouter.get("/:id", async (req: Request, res: Response) => {
 	const id = req?.params?.id;
+	console.log(`Getting /${id}`)
 
 	try {
 
 		const query = { _id: new ObjectId(id) };
-		// const user = (await collections.user.findOne(query)) as User;
+		// TODO: const user = (await collections.user.findOne(query)) as User;
 		const user = (await collections.user.findOne(query));
 
 		if (user) {
@@ -41,6 +40,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
 
 // POST
 userRouter.post("/", async (req: Request, res: Response) => {
+	console.log(`Posting /`)
 	try {
 		const newUser = req.body as User;
 		const result = await collections.user.insertOne(newUser);
@@ -57,6 +57,7 @@ userRouter.post("/", async (req: Request, res: Response) => {
 // PUT
 userRouter.put("/:id", async (req: Request, res: Response) => {
 	const id = req?.params?.id;
+	console.log(`Putting /${id}`)
 
 	try {
 			const updatedUser: User = req.body as User;
