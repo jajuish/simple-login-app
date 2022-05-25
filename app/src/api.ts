@@ -5,25 +5,24 @@ const USER_API_URL = "http://localhost:3002/user/";
 interface ApiResponse { success: boolean, message?: string};
 
 export const login = async (email: string, password: string): Promise<ApiResponse> => {
-	const token = getJWTUserToken();
-
 	try {
 		let res = await fetch(USER_API_URL + "login", {
 			method: 'POST',
 			headers: new Headers({
-				'Authorization': 'Bearer ' + token,
 				'Content-type': 'application/json',
 			}),
 			body: JSON.stringify({ email, password }),
 		})
 
+		const json = await res.json()
 		if (res.status !== 200) {
-			const errorMsg = (await res.json()).message
+			const errorMsg = json.message
 			return {
 				success: false,
 				message: errorMsg
 			};
 		}
+		localStorage.setItem("userId", JSON.stringify(json.id))
 		return { success: true };
 	} catch (err) {
 		return {

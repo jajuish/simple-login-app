@@ -3,14 +3,19 @@ import * as jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { createHash } from "crypto"
 
+import { collections } from "../services/database.service";
+import User from "../models/user";
+import { ObjectId } from "mongodb";
+
 // pre-handler
 export const authenticateUserRequest = async (req: Request) => {
 	try {
 		const token = req.headers.authorization.split(' ')[1];
 		const auth = await verifyJwtServerToken({ token, secret: process.env.JWT_SECRET, algorithm: 'HS512'}) as { userId: string, iat: number, exp: number}
 
-		// right now a constant value for demo purposes, should be replaced later by checking the actual user id from db - using cookies or session storage values
-		if (auth.userId === 'someUserId') {
+		const query = { _id: new ObjectId(auth.userId.replace(`"`,"").replace(`"`,"")) };
+		const user = (await collections.user.findOne(query)) as any as User;
+		if (user !== null) {
 			return true;
 		}
 		console.log("Unauthorized");

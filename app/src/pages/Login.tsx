@@ -13,6 +13,7 @@ const Login = () => {
 	const [showMainPage, setShowMainPage] = useState(false)
 
 	useEffect(() => {
+		localStorage.removeItem("userId");
 		setShowOptions(false);
 		setShowErrorMsg({ error: false, message: "" });
 	}, [email])

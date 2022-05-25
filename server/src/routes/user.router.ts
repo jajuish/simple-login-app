@@ -35,7 +35,7 @@ userRouter.post("/addNewUser", cors(), async (req: Request, res: Response) => {
 		const user = (await collections.user.findOne(query)) as any as User;
 
 		if(user !== null) {
-			return res.status(400).json({ message: "User with this email already exists"})
+			return res.status(201).json({ message: "User with this email already exists"})
 		}
 
 		const newUser = req.body as User;
@@ -54,17 +54,13 @@ userRouter.post("/addNewUser", cors(), async (req: Request, res: Response) => {
 // login
 userRouter.post("/login", async (req: Request, res: Response) => {
 	console.log(`Posting /login`)
-	if (!(await authenticateUserRequest(req))) {
-		return res.status(403).json({ message: "Unauthorized or unregistered" })
-	}
 
 	try {
 		const query = { email: req.body.email, password: createPasswordHash(req.body.password) };
-		// const user = (await collections.user.findOne(query)) as User;
-		const user = (await collections.user.findOne(query)) as any as User;
+		const user = (await collections.user.findOne(query));
 
 		if (user !== null) {
-			return res.status(200).json({ message: "success" });
+			return res.status(200).json({ message: "success", id: user._id });
 		}
 		return res.status(403).json({ message: "Unauthorized or unregistered" })
 	} catch (error) {

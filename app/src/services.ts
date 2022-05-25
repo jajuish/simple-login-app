@@ -18,10 +18,10 @@ const createJWTToken = ({ payload, secret, expiresIn }: {
 
 let serverToken: string, serverTokenGenTime: number;
 export const getJWTUserToken = () => {
-	const userId = "someUserId"; // right now a constant value for demo purposes, should be replaced later by session storage values or a cookie value
+	const userId = localStorage.getItem("userId");
   if(!serverToken || ((new Date().getTime() - serverTokenGenTime) > DAY)){
     const secret = String(process.env.JWT_SECRET);
-    serverToken = createJWTToken( { payload: { userId }, secret, expiresIn: 2*DAY});
+    serverToken = createJWTToken( { payload: { userId: userId ?? "" }, secret, expiresIn: 2*DAY});
     serverTokenGenTime = new Date().getTime();
 	}
   return serverToken;
