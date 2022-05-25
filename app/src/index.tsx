@@ -10,7 +10,6 @@ ReactDOM.render(
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/reg" element={<Register />} />
-      <Route path="/main" element={<MainPage />} />
     </Routes>
   </BrowserRouter>,
   document.getElementById('root')

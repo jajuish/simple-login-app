@@ -2,23 +2,22 @@ import express, { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 import { collections } from "../services/database.service";
 import User from "../models/user";
+import { authenticateUserRequest, createPasswordHash } from "./services.router";
 const cors = require('cors')
 
 // Global Config
 export const userRouter = express.Router();
 userRouter.use(function (req, res, next) {
 
-	// Website you wish to allow to connect
+	// Website to allow to connect
 	res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
 
 	res.setHeader("Access-Control-Allow-Credentials", "true");
 
-	// Request methods you wish to allow
+	// Request methods to allow
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
-	// Request headers you wish to allow
-	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
+	// Request headers to allow
 	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
 
 	// Pass to next layer of middleware
@@ -26,75 +25,65 @@ userRouter.use(function (req, res, next) {
 });
 userRouter.use(express.json());
 
-// GET
-userRouter.get("/", async (_req: Request, res: Response) => {
-	console.log(`Getting /`)
-	res.set('Access-Control-Allow-Origin', '*');
-	try {
-		// TODO: const user = (await collections.user.find({}).toArray()) as User[];
-		const user = (await collections.user.find({}).toArray());
-
-		res.status(200).send(user);
-	} catch (error) {
-		res.status(500).send(error.message);
-	}
-});
-
-userRouter.get("/:id", async (req: Request, res: Response) => {
-	const id = req?.params?.id;
-	console.log(`Getting /${id}`)
-	res.set('Access-Control-Allow-Origin', '*');
-
-	try {
-
-		const query = { _id: new ObjectId(id) };
-		// TODO: const user = (await collections.user.findOne(query)) as User;
-		const user = (await collections.user.findOne(query));
-
-		if (user) {
-			res.status(200).send(user);
-		}
-	} catch (error) {
-		res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
-	}
-});
-
-// POST
+// register
 userRouter.post("/addNewUser", cors(), async (req: Request, res: Response) => {
 	console.log(`Posting /addNewUser`)
-	res.set('Access-Control-Allow-Origin', '*');
+
 	try {
+		const email = req.body.email;
+		const query = { email };
+		const user = (await collections.user.findOne(query)) as any as User;
+
+		if(user !== null) {
+			return res.status(400).json({ message: "User with this email already exists"})
+		}
+
 		const newUser = req.body as User;
+		newUser.password = createPasswordHash(newUser.password)
 		const result = await collections.user.insertOne(newUser);
 
-		result
-			? res.status(201).send(`Successfully created a new user with id ${result.insertedId}`)
-			: res.status(500).send("Failed to create a new user.");
+		return result
+			? res.status(200).json({ message: `Successfully created a new user` })
+			: res.status(500).json({ message: "Failed to create a new user." });
 	} catch (error) {
 		console.error(error);
-		res.status(400).send(error.message);
+		return res.status(400).json({ message: "Please try again" });
 	}
 });
 
-// PUT
-userRouter.put("/:id", async (req: Request, res: Response) => {
-	const id = req?.params?.id;
-	console.log(`Putting /${id}`)
-	res.set('Access-Control-Allow-Origin', '*');
+// login
+userRouter.post("/login", async (req: Request, res: Response) => {
+	console.log(`Posting /login`)
+	if (!(await authenticateUserRequest(req))) {
+		return res.status(403).json({ message: "Unauthorized or unregistered" })
+	}
 
 	try {
-		const updatedUser: User = req.body as User;
-		const query = { _id: new ObjectId(id) };
+		const query = { email: req.body.email, password: createPasswordHash(req.body.password) };
+		// const user = (await collections.user.findOne(query)) as User;
+		const user = (await collections.user.findOne(query)) as any as User;
 
-		const result = await collections.user.updateOne(query, { $set: updatedUser });
-
-		result
-			? res.status(200).send(`Successfully updated user with id ${id}`)
-			: res.status(304).send(`User with id: ${id} not updated`);
+		if (user !== null) {
+			return res.status(200).json({ message: "success" });
+		}
+		return res.status(403).json({ message: "Unauthorized or unregistered" })
 	} catch (error) {
-		console.error(error.message);
-		res.status(400).send(error.message);
+		console.error(error);
+		return res.status(400).json({ message: "Please try again" });
 	}
 });
 
-// DELETE
+// get all users
+userRouter.get("/getAllUsers", async (_req: Request, res: Response) => {
+	console.log(`Getting /getAllUsers`)
+	if (!(await authenticateUserRequest(_req))) {
+		return res.status(403).json({ message: "Unauthorized or unregistered" })
+	}
+
+	try {
+		const users = (await collections.user.find({}).toArray()) as any as User[];
+		return res.status(200).json(users.map((user) => { return { name: user.name, email: user.email } }));
+	} catch (error) {
+		return res.status(500).json({ message: "Please try again later" });
+	}
+});
