@@ -8,9 +8,19 @@ const Register = () => {
 	const [password, setPassword] = useState("");
 	const [showErrorMsg, setShowErrorMsg] = useState({ error: false, message: "" })
 
+	function isEmailValid (email: string) {
+		const regex = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+		if (!email || regex.test(email) === false) {
+			return false;
+		}
+		return true;
+	}
+
 	async function registerNewUser() {
 		if (name === "" || email === "" || password === "") {
 			setShowErrorMsg({ error: true, message: "All fields are required" })
+		} else if (!isEmailValid(email)) {
+			setShowErrorMsg({ error: true, message: "Enter valid email" })
 		} else {
 			const response = await register(email, password, name);
 			if (!response.success) {
