@@ -2,7 +2,7 @@ const Login = () => {
 	return (
 		<div>
 			<h1>Login to see all users</h1>
-			<input type="text" placeholder="username" />
+			<input type="text" placeholder="email" />
 			<input type="password" placeholder="password" />
 			<button>Enter</button>
 			<br />
