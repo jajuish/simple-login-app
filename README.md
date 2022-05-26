@@ -9,6 +9,10 @@
 - JWT
 
 ### Run the website
+
+#### Initialize MongoDB connection
+1. Set env variable string values inside server/.env
+
 #### Start the frontend server
 1. `cd app/`
 2. `npm install`
